@@ -1,7 +1,7 @@
 {
   "name": "uECG_UI",
   "version": "0.0.2",
-  "description": "my WebGL plot from serial port",
+  "description": "ECG online plotter for uECG device",
   "dependencies": {
     "express": "^4.16.2",
     "npm": "^6.9.0",
