@@ -1,6 +1,6 @@
 {
-  "name": "WebGL_plot",
-  "version": "0.0.1",
+  "name": "uECG_UI",
+  "version": "0.0.2",
   "description": "my WebGL plot from serial port",
   "dependencies": {
     "express": "^4.16.2",
@@ -13,6 +13,7 @@
     "start": "node server.js"
   },
   "devDependencies": {
+    "minimist": "^1.2.0",
     "nodemon": "^1.18.11"
   }
 }

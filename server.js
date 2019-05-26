@@ -5,8 +5,7 @@
 //$ sudo nodemon server.js
 
 //Server init:
-const local_hostname = '192.168.1.131';
-const localhost_port = '3000';
+
 
 var start = Date.now();
 var address;
@@ -14,6 +13,7 @@ var time;
 var socketID;
 var clientIP;
 
+const minimist = require('minimist');
 const http = require('http');
 const express = require('express');
 const app = express();
@@ -148,10 +148,7 @@ io.sockets.on('connection', function (socket) {
   });
 });
 
-Server.listen(localhost_port, () => {
-  console.log(`Server started on ${local_hostname}:${localhost_port}`);
-  // check_serial_ports();
-})
+
 
 /*
 app.get('/', function (req, res) {
@@ -166,3 +163,47 @@ app.get('/serial_port', function (req, res) {
   });
 })
 */
+
+var localhost_name;
+var localhost_port;
+
+function ServerInit(){
+  let args = minimist(process.argv.slice(2), {
+    alias: {
+        h: 'help',
+        v: 'version'
+    },
+    default:{
+        localhost_name: "192.168.1.131",
+        port: "3000"
+    }
+  });
+  localhost_name = args['localhost_name'];
+  localhost_port = args['port'];
+
+  if( args['v'] ){
+    let app_info = require('./package.json');
+    console.log("\n   " + app_info['name'] + " version: " + app_info['version'] + "\n");
+    process.exit();
+  }
+  if( args['h'] ){
+    let app_info = require('./package.json');
+    console.log("\t-h \t help \n\t-v \t version \n\t-port \t network port number (default 3000)");
+    console.log(`
+     You can open the browser on (localhost_name:port) after the server starts
+    `);
+    process.exit();
+  }
+
+  console.log(`
+   You can open the browser on (localhost_name:port) after the server starts
+   Use $sudo to have access to the port
+  `);
+
+  Server.listen(localhost_port, () => {
+    console.log(`Server started on ${localhost_name}:${localhost_port}`);
+    // check_serial_ports();
+  });
+}
+
+ServerInit();
