@@ -1,0 +1,36 @@
+<!Doctype html>
+<html>
+  <!--<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">-->
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Serial port ploter</title>
+  <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+  <script type="module" src="matrix.js"></script>
+  <script type="module" src="canvas_plot.js"></script>
+  <script type="text/javascript" src="UFI_Plot.js" type="module"></script>
+
+  <!--<script src="https://webglfundamentals.org/webgl/resources/webgl-utils.js"></script>-->
+  <link rel="stylesheet" href="styles.css">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <!--<script src="https://webglfundamentals.org/webgl/resources/m3.js"></script>-->
+</head>
+   <body id="main">
+     <script src="index.js" type="module" ></script>
+      <canvas width ="1000" height ="700" id="my_plot"></canvas>
+      <div class="navbar">
+        <ul id="control_panel">
+          <button id="connect_button_id"> <span id="connect_button_lable_id"></span></button>
+          <button id="serial_port_button_id"> <span id="serial_port_lable_id">Serial port</span></button>
+        </ul>
+      </div>
+
+      <div id="overlay">
+        <div>FPS:   <span id="FPS_lable"  </span></div>
+        <!--<div>new:   <span id="frame_update_time"</span></div>-->
+        <div>Value: <span id="new_value_lable"</span></div>
+        <div>Mouse: <span id="mouse_lable" </span></div>
+        <div>Canvas size: <span id="canvas_size_lable" </span></div>
+      </div>
+   </body>
+</html>

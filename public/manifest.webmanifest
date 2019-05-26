@@ -1,0 +1,26 @@
+{
+  "name": "uECG plot",
+  "short_name" : "uECG",
+  "start_url" : "/index.html",
+  "display" : "standalone",
+  "background_color" : "#11111F",
+  "theme_color" :"#9F1111",
+  "orientation" : "landscape-primary",
+  "icons":[
+    {
+      "src": "/logo/logo32.png",
+      "type": "image/png",
+      "sizes": "32x32"
+    },
+    {
+      "src": "/logo/logo144.png",
+      "type": "image/png",
+      "sizes": "144x144"
+    },
+    {
+      "src": "/logo/logo192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    }
+  ]
+}
