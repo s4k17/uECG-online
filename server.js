@@ -177,6 +177,10 @@ function ServerInit(){
     default:{
         localhost_name: "192.168.1.131",
         port: "3000"
+    },
+    unknown: (arg) => {
+      console.error('Unknown option: ', arg)
+      return false
     }
   });
 
