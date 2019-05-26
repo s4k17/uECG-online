@@ -171,39 +171,49 @@ function ServerInit(){
   let args = minimist(process.argv.slice(2), {
     alias: {
         h: 'help',
-        v: 'version'
+        v: 'version',
+        p: 'port'
     },
     default:{
         localhost_name: "192.168.1.131",
         port: "3000"
     }
   });
+
   localhost_name = args['localhost_name'];
   localhost_port = args['port'];
 
   if( args['v'] ){
     let app_info = require('./package.json');
-    console.log("\n   " + app_info['name'] + " version: " + app_info['version'] + "\n");
+    console.log("\n  App name: " + app_info['name'] + " - " + app_info['description'] + "\n");
+    console.log("  Version: " + app_info['version'] + "\n");
     process.exit();
   }
   if( args['h'] ){
     let app_info = require('./package.json');
-    console.log("\t-h \t help \n\t-v \t version \n\t-port \t network port number (default 3000)");
+    console.log("\nHelp for uECG-online\n");
+    console.log("\t-h --help\tPrint this help\n");
+    console.log("\t-v --version\tPrint current version of uECG-online\n");
+    console.log("\t-p --port\tNetwork port number (default 3000)");
     console.log(`
-     You can open the browser on (localhost_name:port) after the server starts
+      Runing app:
+      $sudo npm start      \t\t\t(run from node.js script)
+      $sudo node server.js [only here you can use the commands]
+      $sudo node server.js --port 3000 \t\t(start server on port 3000)
+      $sudo node server.js -p 3000 \t\t(start server on port 3000)
+
+  You can open the browser on (localhost_name:port) after the server starts.
+  Pay attention! Use $sudo to have access to the serial port.
+  If the base station is connected to USB, the App will try to find and open it serial port.
+
     `);
     process.exit();
   }
-
-  console.log(`
-   You can open the browser on (localhost_name:port) after the server starts
-   Use $sudo to have access to the port
-  `);
-
-  Server.listen(localhost_port, () => {
-    console.log(`Server started on ${localhost_name}:${localhost_port}`);
-    // check_serial_ports();
-  });
 }
 
 ServerInit();
+
+Server.listen(localhost_port, () => {
+  console.log(`Server started on ${localhost_name}:${localhost_port}`);
+  // check_serial_ports();
+});
