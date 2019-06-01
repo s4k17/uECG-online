@@ -72,11 +72,11 @@ function check_serial_ports(){
   });
 }
 // list serial ports.
-/*
+
 setInterval(function(){
-  //io.sockets.emit('update_data', lastValue);
+  io.sockets.emit('update_data', lastValue);
 },1);
-*/
+
 function serial_port_read_data(){
   serial_port.on('open', () => {
     io.on('connection', socket => {
@@ -84,7 +84,6 @@ function serial_port_read_data(){
     });
   });
 }
-
 
 /*
 serial_port.on('data', () => {
@@ -101,50 +100,28 @@ serial_port.on('data', () => {
 check_serial_ports();
 
 var temp = true;
-io.sockets.on('connection', function (socket) {
-  io.on('connection', function (socket) {
-    address = socket.handshake.address;
-    time = socket.handshake.time;
-    socketID = socket.id;
-    clientIP = socket.request.connection.remoteAddress;
 
-    console.log("socketID: [" + socketID + "], socketID:" + clientIP);
-    console.log('Time: '+ time + ', New connection from ' + address);
+io.sockets.on('connection', function (socket) {
+  address = socket.handshake.address;
+  time = socket.handshake.time;
+  socketID = socket.id;
+  clientIP = socket.request.connection.remoteAddress;
+  console.log("->>-  SocketID: [" + socketID + "] " + clientIP);
+  console.log( Object.keys(io.engine.clients) );
+
+  socket.on('disconnect', function (socket) {
+    console.log("-> >- SocketID: [" + socketID + "] " + clientIP);
   });
-  /*
+
   serial_port.on('error', function(err) {
     console.log('Error: ', err.message)
   });
-*/
+
   serial_port.on('readable', function () {
       parser.on('data', new_value => {
         lastValue = new_value;
-        io.sockets.emit('update_data', new_value);
+        //io.sockets.emit('update_data', new_value);
       });
-  });
-  //serial_port.read(console.log())
-/*
-  serial_port.on('data', function(data){
-    console.log('Data:',data);
-    //lastValue = ~~data.slice(0, -2);// make com port lag
-    //socket.to(socketID).emit('update_data', lastValue);
-  });
-*/
-
-  /*
-  parser.on('data', new_value => {
-
-  });
-  */
-  /*
-  serial_port.on('close', () => {
-    console.log("Serial port: " + Serial_path + ' closed!');
-    Serial_path = null;
-    io.sockets.emit('serial_port_news', 'Serial port closed');
-  });
-  */
-  socket.on('disconnected', function () {
-  	console.log('user disconnected');
   });
 });
 
