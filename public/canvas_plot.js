@@ -6,9 +6,9 @@ import {m3} from "./matrix.js";
 //GLOBAL gl context variables:
 var gl; // gl context
 
-var canvasFPS = 20;
+var canvasFPS_fixed = 30;
+var canvasFPS = canvasFPS_fixed;
 var FPS_filtered = 0;
-var render_time_filtered = 0;
 var need_update_frame = false;
 
 var timeSpent = 0;
@@ -36,7 +36,7 @@ var scale = [1.0, 1.0];
 var frame_counter = 1;
 
 // DATA:
-const vertices_n = 500;
+const vertices_n = 4000;
 var gl_vertices_plot_points_f32;
 
 function _GL_init() {
@@ -47,19 +47,19 @@ function _GL_init() {
   }
 }
 
-var t0, t1, delta_t;
+var t0, t1, delta_t, render_time_filtered = 0;
 
 function _renderLoop(){
-  setInterval( function (){
-    if(client.need_update_canvas){
-      t0 = performance.now();
-      render();
-      t1 = performance.now();
-      delta_t = t1 - t0;
-      render_time_filtered += delta_t*0.01;
-      render_time_filtered *= 0.99;
-      FPS_filtered = 1000/render_time_filtered;
-    }
+  setTimeout(function() {
+    requestAnimationFrame(_renderLoop);
+    t0 = performance.now();
+    render();
+    t1 = performance.now();
+    delta_t = t1 - t0;
+    render_time_filtered += delta_t*0.01;
+    render_time_filtered *= 0.99;
+    FPS_filtered = 1000/render_time_filtered;
+
     client.FPS_lable.nodeValue =
       FPS_filtered.toFixed(1) +
       ", Render time: " + render_time_filtered.toFixed(2) + " ms";
@@ -77,7 +77,7 @@ export function RunApp(){
 		gl.clearDepth(1.0);
 		gl.enable(gl.DEPTH_TEST);
 		gl.depthFunc(gl.LEQUAL);
-		_renderLoop();
+		requestAnimationFrame(_renderLoop);
 	}
   //cleanup();
 }
@@ -217,6 +217,24 @@ function render(){
   //gl.drawArrays(gl.LINE_STRIP, 0, vertices_n/2);// Draw the lines
 
 
+/*
+  var data = new Float32Array([
+   0.0,  0.5,   10.0,   1.0, 0.0, 0.0,
+  -0.5, -0.5,   20.0,   0.0, 1.0, 0.0,
+   0.5, -0.5,   30.0,   0.0, 0.0, 1.0
+  ]);
+  var bpe = data.BYTES_PER_ELEMENT;
+  var buffer = gl.createBuffer();
+  if (!buffer) throw new Error('Failed to create buffer.');
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+  gl.vertexAttribPointer(attributes.aPosition, 2, gl.FLOAT, false, 6 * bpe, 0);
+  gl.enableVertexAttribArray(attributes.aPosition);
+  gl.vertexAttribPointer(attributes.aPointSize, 1, gl.FLOAT, false, 6 * bpe, 2 * bpe);
+  gl.enableVertexAttribArray(attributes.aPointSize);
+  gl.vertexAttribPointer(attributes.aColor, 3, gl.FLOAT, false, 6 * bpe, 3 * bpe);
+  gl.enableVertexAttribPointer(attributes.aColor);
+*/
 
   switch (mode.line_type) {
     case 'dot':{
@@ -225,7 +243,7 @@ function render(){
       break;
     }
     case 'continious':{
-      gl.lineWidth(3);
+      gl.lineWidth(1);
       gl.drawArrays(gl.LINE_STRIP, 0, vertices_n/2);
       break;
     }
