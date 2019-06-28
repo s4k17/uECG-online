@@ -6,13 +6,6 @@
 
 //Server init:
 
-
-var start = Date.now();
-var address;
-var time;
-var socketID;
-var clientIP;
-
 const minimist = require('minimist');
 const http = require('http');
 const express = require('express');
@@ -21,8 +14,21 @@ app.use(express.static(__dirname + '/public'));
 
 const Server = http.createServer(app);
 const io = require('socket.io').listen(Server);
-
+  //high speed timer init:
+  var hrstart_timestamp, hrend_time_us, hr_init_timestamp, hr_filtered_time_us = 0;
+  hr_init_timestamp = process.hrtime();
+  //high speed timer init.
 //Server init.
+
+var start = Date.now();
+var address;
+var time;
+var socketID;
+var clientIP;
+
+const serial_data_buf = new Uint16Array(50);
+let serial_data_buf_pos = 0;
+let serial_data_buf_full = false;
 
 //Serial port init:
 const SerialPorts = require('serialport');
@@ -73,10 +79,6 @@ function check_serial_ports(){
 }
 // list serial ports.
 
-setInterval(function(){
-  io.sockets.emit('update_data', lastValue);
-},1);
-
 function serial_port_read_data(){
   serial_port.on('open', () => {
     io.on('connection', socket => {
@@ -84,7 +86,14 @@ function serial_port_read_data(){
     });
   });
 }
-
+/*
+setInterval(function(){
+  if(serial_data_buf_full){
+    io.sockets.emit('update_data', serial_data_buf);
+    serial_data_buf_full = false;
+  }
+}, 5);
+*/
 /*
 serial_port.on('data', () => {
   let lastValue;
@@ -119,8 +128,26 @@ io.sockets.on('connection', function (socket) {
 
   serial_port.on('readable', function () {
       parser.on('data', new_value => {
+        hrstart_timestamp = process.hrtime(hr_init_timestamp);
+        /*
+        console.info('Serial port new data every: %d us',
+          (hrstart_timestamp[1]/1000 - hrend_time_us)
+        );
+        hrend_time_us = hrstart_timestamp[1]/1000;
+        */
         lastValue = new_value;
-        //io.sockets.emit('update_data', new_value);
+        serial_data_buf[serial_data_buf_pos] = new_value;
+        if(serial_data_buf_pos > serial_data_buf.length){
+          serial_data_buf_pos = 0;
+          serial_data_buf_full = true;
+        }
+        else serial_data_buf_pos++;
+
+        if(serial_data_buf_full){
+          io.sockets.emit('update_data', serial_data_buf);
+          serial_data_buf_full = false;
+        }
+
       });
   });
 });
@@ -153,6 +180,7 @@ function ServerInit(){
     },
     default:{
         localhost_name: "192.168.1.131",
+        //localhost_name: "176.104.21.173",
         port: "3000"
     },
     unknown: (arg) => {
