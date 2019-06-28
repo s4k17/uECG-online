@@ -194,3 +194,19 @@ document.addEventListener("DOMContentLoaded", function(event) {
   window.onresize = function(event) {update_canvas_size_lables()};
   window.onload = function(event) {update_canvas_size_lables()};
 });
+
+//IMPORTANT Works only on  http://localhost or https://...
+function registerServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    console.log('CLIENT: service worker registration in progress.');
+    navigator.serviceWorker.register('service-worker.js', { scope: '/' }).then(function() {
+      console.log('CLIENT: service worker registration complete.');
+    }, function() {
+      console.log('CLIENT: service worker registration failure.');
+    });
+  }else{
+    console.log('CLIENT: service worker is not supported.');
+  }
+}
+
+registerServiceWorker();
