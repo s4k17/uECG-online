@@ -6,7 +6,7 @@ import {m3} from "./matrix.js";
 //GLOBAL gl context variables:
 var gl; // gl context
 
-var canvasFPS_fixed = 30;
+var canvasFPS_fixed = 20;
 var canvasFPS = canvasFPS_fixed;
 var FPS_filtered = 0;
 var need_update_frame = false;
@@ -27,7 +27,7 @@ export var translation = [0.00, 0.00];
 export var mode = {
   line_type: "continious", //'continious' || 'dot'
   line_width: 1.0,
-  point_size: 2.0
+  point_size: 2.0,
 };
 var angleInRadians = 0;
 var scale = [1.0, 1.0];
@@ -36,8 +36,15 @@ var scale = [1.0, 1.0];
 var frame_counter = 1;
 
 // DATA:
-const vertices_n = 4000;
+export var vertices_n = 1000;
+var vertices_pos = 0;
 var gl_vertices_plot_points_f32;
+var vertices_points_pos = 0;
+
+let temp_buff_pos = 0;
+let temp_buff_n = 10;
+const temp_buffer = new Array(vertices_n);
+let subarray_data = new Array(vertices_n)
 
 function _GL_init() {
   gl = client.canvas.getContext("webgl");
@@ -137,14 +144,12 @@ function _Create_shader_program( vert_shader, frag_shader){
 
 function _vertex_buffer_init(){
   // DATA:
-  var vertices = Array(vertices_n).fill(0);
 
-  for (var i = 0; i < vertices_n - 1; i +=2) {
-    vertices[i] = i/vertices_n;
-    vertices[i + 1] = 0.9*Math.sin(i*2*3.1415/vertices_n);
+  gl_vertices_plot_points_f32 = new Float32Array(2*vertices_n);
+  for(let i = 0; i < 2*vertices_n - 1; i+=2){
+    gl_vertices_plot_points_f32[i] = i/vertices_n/2; //time
+    gl_vertices_plot_points_f32[i + 1] = 0.9*Math.sin(i*2*3.1415/vertices_n);
   }
-
-  gl_vertices_plot_points_f32 = new Float32Array(vertices);
 
   //console.log(vertices);
   //console.log(gl_vertices_plot_points_f32);
@@ -160,16 +165,42 @@ function _vertex_buffer_init(){
   //alert( "We use compiled and linked shader program" );
 }
 
-function _update_vertex_buffer( new_value, new_data ){
-  for(var i = 0; i < vertices_n; i += 2){
-      gl_vertices_plot_points_f32[i + 1] = gl_vertices_plot_points_f32[i + 3];
+export function _update_vertex_points_data(){
+  if( client.data_buff_from_server.length > 0){
+    /*
+    subarray_data = client.data_buff_from_server.slice(0, vertices_n);
+    for( let i = 0; i < vertices_n; i++){
+      gl_vertices_plot_points_f32[2*(i) + 1] = subarray_data[i]/1024.0 - 0.5;
+    }
+    */
+
+      gl_vertices_plot_points_f32[2*(vertices_pos) + 1] = client.data_buff_from_server[0]/1024.0 - 0.5;
+      vertices_pos++;
+      if( vertices_pos > vertices_n ) vertices_pos = 0;
+
+
+    if( client.del_elements != null || client.del_elements > 0 ){
+      client.data_buff_from_server.splice(0, client.del_elements);
+    }else{
+      client.data_buff_from_server.shift();
+      client.del_elements = 1;
+    }
   }
-  gl_vertices_plot_points_f32[ gl_vertices_plot_points_f32.length - 1 ] = new_value;
 }
 
-export function _update_plot_data(){
-  _update_vertex_buffer( (client.value_from_server)/1024 - 0.5, timeSpent );
+export function _update_data(){
+  //console.log(client.data_buff_from_server);
+  if(new_data_buf != undefined ){
+    client.data_buff_from_server.set(temp_buff, temp_buff_pos/10);
+    if( temp_buff_pos < vertices_n ) temp_buff_pos++;
+    else temp_buff_pos = 0;
+    //console.log(client.data_buff_from_server);
+  }
 }
+
+setInterval(function(){
+  _update_vertex_points_data();
+}, 3);
 
 function GL_vertexAttribPointer( attr, byte_offset ){
   // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
@@ -239,17 +270,17 @@ function render(){
   switch (mode.line_type) {
     case 'dot':{
       gl.uniform1f(point_size_attr,2.5);
-      gl.drawArrays(gl.POINTS, 0, vertices_n/2);// Draw the lines
+      gl.drawArrays(gl.POINTS, 0, vertices_n);// Draw the lines
       break;
     }
     case 'continious':{
       gl.lineWidth(1);
-      gl.drawArrays(gl.LINE_STRIP, 0, vertices_n/2);
+      gl.drawArrays(gl.LINE_STRIP, 0, vertices_n);
       break;
     }
   }
   frame_counter++;
-  if( frame_counter >= vertices_n/2 ) frame_counter = 0;
+  if( frame_counter >= vertices_n) frame_counter = 0;
 }
 
 function cleanup() {
