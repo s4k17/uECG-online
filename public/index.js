@@ -6,19 +6,29 @@ var server_send_new_data = false;
 export var need_update_canvas = false;
 
 export var canvas;
-//var server_ip = "176.104.21.173";
-var server_ip = "192.168.1.131";
-var server_port = 3000;
+var server_ip = "176.104.21.173";
+var server_port = 80;
+//var server_ip = "192.168.1.131";
+//var server_port = 3000;
 
 export var value_from_server = -1;
+export var data_buff_from_server = [];
+export var data_buff_from_server_num = 0;
+export var data_buff_from_server_overflow = false;
+var data_buff_for_plot = [];
+const data_buff_from_server_max = 2000;
 var new_data_time, time_data_update;
+
+export let del_elements = 10;
 
 export var mouse_lable;
 export var new_value_lable;
 export var FPS_lable;
 export var canvas_size_lable;
 export var connect_button_lable;
+export var serial_port_button_lable
 export var frame_update_time_lable;
+export var data_buffer_lable;
 let serverAdress = 'http://' + server_ip + ':'+ server_port;
 console.log(serverAdress);
 
@@ -45,13 +55,20 @@ socket.on('connect', function () {
   console.log("Connected  SocketID: [" + SocketID + "]");
 });
 
-socket.on('update_data', function (_new_value){
+socket.on('update_data', function (new_data_buf){
   if( connected_to_server ){
-      value_from_server = _new_value;
-      server_send_new_data = true;
-      canvas_plot._update_plot_data();
-      need_update_canvas = true;
+    server_send_new_data = true;
+
+    if( data_buff_from_server.length < data_buff_from_server_max){
+      data_buff_from_server.push( Object.values(new_data_buf) );
+      data_buff_from_server = [].concat.apply([], data_buff_from_server);
+      data_buff_from_server_overflow = false;
+    }else{
+      data_buff_from_server_overflow = true;
     }
+    need_update_canvas = true;
+  }
+
 });
 
 function getMousePos(canvas, evt) {
@@ -86,6 +103,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
   var mouse_lable_Element = document.getElementById("mouse_lable");
   var canvas_size_lable_Element = document.getElementById("canvas_size_lable");
   var connect_button_Element = document.getElementById("connect_button_lable_id");
+  var serial_port_button_Element = document.getElementById("serial_port_button_id");
+  var data_buffer_Element = document.getElementById("data_buffer_lable");
   //var frame_update_time_Element = document.getElementById("frame_update_time");
 
   new_value_lable = document.createTextNode("");
@@ -93,6 +112,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
   mouse_lable = document.createTextNode("0, 0");
   canvas_size_lable = document.createTextNode("");
   connect_button_lable = document.createTextNode("Disonnect?");
+  serial_port_button_lable = document.createTextNode("");
+  data_buffer_lable = document.createTextNode("");
   //frame_update_time_lable = document.createTextNode("");
 
   FPS_lable_Element.appendChild(FPS_lable);
@@ -100,6 +121,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
   mouse_lable_Element.appendChild(mouse_lable);
   canvas_size_lable_Element.appendChild(canvas_size_lable);
   connect_button_Element.appendChild(connect_button_lable);
+  serial_port_button_Element.appendChild(serial_port_button_lable);
+  data_buffer_Element.appendChild(data_buffer_lable);
   //frame_update_time_Element.appendChild(frame_update_time_lable);
 
   canvas.onmousedown = function(event){
@@ -135,7 +158,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
       socket.close();
       console.log("Disconnect SocketID: [" + SocketID + "]");
       connect_button_lable.nodeValue = "Connect";
-      canvas_plot.canvasFPS = 1;
+      //canvas_plot.canvasFPS = 1;
     }
     else{
       connected_to_server = true;
@@ -143,9 +166,16 @@ document.addEventListener("DOMContentLoaded", function(event) {
       socket.open();
       SocketID = socket.id;
       console.log("Connected  SocketID: [" + SocketID + "]");
-      canvas_plot.canvasFPS = canvasFPS_fixed;
+      //canvas_plot.canvasFPS = 30;
     }
   };
+
+  serial_port_button_Element.onmousedown = function(event){
+    del_elements = prompt("Filter elements");
+  }
+  setInterval(function(){
+    data_buffer_lable.nodeValue = data_buff_from_server.length;
+  },500);
 
   setInterval(function(){
     if(socket.disconnected && connected_to_server){
@@ -154,7 +184,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
       socket.close();
       console.log("Connection lost, SocketID: [" + SocketID + "]");
       connect_button_lable.nodeValue = "Connect";
-      canvas_plot.canvasFPS = 10;
+      //canvas_plot.canvasFPS = 10;
     }
   },700);
 
